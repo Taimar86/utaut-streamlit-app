@@ -26,12 +26,11 @@ st.subheader("Please select your response for each statement:")
 user_responses = {}
 
 for construct, question in questions.items():
-    st.write(f"**{question}**")
+    st.write(f"**{question}**")  # Display the question
     user_responses[construct] = st.radio(
-        "", 
-        options=[None] + likert_options,  # Adding a "None" option at the start
-        format_func=lambda x: "Select an option" if x is None else x,  # Display "Select an option" for None
-        index=0, 
+        label="",  # No label for the radio buttons
+        options=likert_options,  # Only the Likert scale options
+        index=None,  # No default selection
         key=construct
     )
 
@@ -64,4 +63,3 @@ if st.session_state.responses:
     # Show bar chart
     st.subheader("Survey Results (Bar Chart)")
     st.bar_chart(df_numeric.mean())
-
