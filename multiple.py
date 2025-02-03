@@ -21,18 +21,27 @@ likert_options = ["Strongly Disagree", "Disagree", "Neutral", "Agree", "Strongly
 if "responses" not in st.session_state:
     st.session_state.responses = []
 
-# Display questions using buttons
+# Display questions with radio buttons
 st.subheader("Please select your response for each statement:")
 user_responses = {}
 
 for construct, question in questions.items():
     st.write(f"**{question}**")
-    user_responses[construct] = st.radio("", likert_options, index=2, key=construct)
+    user_responses[construct] = st.radio(
+        "", 
+        options=[None] + likert_options,  # Adding a "None" option at the start
+        format_func=lambda x: "Select an option" if x is None else x,  # Display "Select an option" for None
+        index=0, 
+        key=construct
+    )
 
-# Submit button
+# Submit button with validation check
 if st.button("Submit Responses"):
-    st.session_state.responses.append(user_responses)  # Store responses
-    st.success("Your responses have been recorded!")
+    if None in user_responses.values():  # Ensure all questions are answered
+        st.error("Please select an option for all questions before submitting.")
+    else:
+        st.session_state.responses.append(user_responses)
+        st.success("Your responses have been recorded!")
 
 # Display responses table and bar chart if data exists
 if st.session_state.responses:
