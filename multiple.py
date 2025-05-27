@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import os
@@ -61,10 +60,13 @@ if all_responses:
         counts = counts.reindex(likert_options, fill_value=0)
         percentages[column] = counts
 
-    percent_df = pd.DataFrame(percentages).T.astype(int)
-    st.table(percent_df)
+    percent_df = pd.DataFrame(percentages).T.round().astype(int)
 
-    # Optional: Show bar chart for average numeric scores
+    # Add % sign for display
+    display_df = percent_df.applymap(lambda x: f"{x}%")
+    st.table(display_df)
+
+    # Numeric conversion for bar chart
     likert_mapping = {
         "Strongly Disagree": 1,
         "Disagree": 2,
@@ -73,5 +75,6 @@ if all_responses:
         "Strongly Agree": 5
     }
     df_numeric = df.replace(likert_mapping)
+
     st.subheader("Average Score per Question")
     st.bar_chart(df_numeric.mean())
