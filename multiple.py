@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import os
 import json
-from collections import Counter
 
 # Set page title
 st.title("UTAUT Questionnaire for Context-Sensitive Spell Checking")
@@ -60,10 +59,11 @@ if all_responses:
         counts = counts.reindex(likert_options, fill_value=0)
         percentages[column] = counts
 
-    percent_df = pd.DataFrame(percentages).T.round().astype(int)
+    # Convert to whole number and format with %
+    percent_df = pd.DataFrame(percentages).T
+    percent_df = percent_df.round().astype(int)
+    display_df = percent_df.astype(str) + "%"  # Add percentage signs
 
-    # Add % sign for display
-    display_df = percent_df.applymap(lambda x: f"{x}%")
     st.table(display_df)
 
     # Numeric conversion for bar chart
