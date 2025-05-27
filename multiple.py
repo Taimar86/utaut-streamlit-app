@@ -61,7 +61,7 @@ if all_responses:
         counts = counts.reindex(likert_options, fill_value=0)
         percentages[column] = counts
 
-    percent_df = pd.DataFrame(percentages).T.round(2)
+    percent_df = pd.DataFrame(percentages).T.astype(int)
     st.table(percent_df)
 
     # Optional: Show bar chart for average numeric scores
