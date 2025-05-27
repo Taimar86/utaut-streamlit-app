@@ -1,10 +1,14 @@
+
 import streamlit as st
 import pandas as pd
+import os
+import json
+from collections import Counter
 
 # Set page title
 st.title("UTAUT Questionnaire for Context-Sensitive Spell Checking")
 
-# Define UTAUT constructs and their corresponding questions
+# Define UTAUT constructs and questions
 questions = {
     "Performance Expectancy": "I find the context-sensitive spell checker useful in my tasks.",
     "Effort Expectancy": "The spell checker is easy to use.",
@@ -14,43 +18,53 @@ questions = {
     "Actual Use Behavior": "I frequently use the context-sensitive spell checker."
 }
 
-# Define Likert scale options
 likert_options = ["Strongly Disagree", "Disagree", "Neutral", "Agree", "Strongly Agree"]
+response_file = "survey_responses.json"
 
-# Initialize session state to store responses
-if "responses" not in st.session_state:
-    st.session_state.responses = []
+# Load previous responses
+if os.path.exists(response_file):
+    with open(response_file, "r", encoding="utf-8") as f:
+        all_responses = json.load(f)
+else:
+    all_responses = []
 
-# Display questions with radio buttons
+# Display form
 st.subheader("Please select your response for each statement:")
 user_responses = {}
 
 for construct, question in questions.items():
-    st.write(f"**{question}**")  # Display the question
+    st.write(f"**{question}**")
     user_responses[construct] = st.radio(
-        label="",  # No label for the radio buttons
-        options=likert_options,  # Only the Likert scale options
-        index=None,  # No default selection
-        key=construct
+        label="", options=likert_options, index=None, key=construct
     )
 
-# Submit button with validation check
+# Submit button
 if st.button("Submit Responses"):
-    if None in user_responses.values():  # Ensure all questions are answered
+    if None in user_responses.values():
         st.error("Please select an option for all questions before submitting.")
     else:
-        st.session_state.responses.append(user_responses)
+        all_responses.append(user_responses)
+        with open(response_file, "w", encoding="utf-8") as f:
+            json.dump(all_responses, f, indent=4, ensure_ascii=False)
         st.success("Your responses have been recorded!")
 
-# Display responses table and bar chart if data exists
-if st.session_state.responses:
-    df = pd.DataFrame(st.session_state.responses)
+# Display summary if there are any responses
+if all_responses:
+    df = pd.DataFrame(all_responses)
 
-    # Show responses table
-    st.subheader("Responses Table")
-    st.table(df)
+    st.subheader("Percentage Breakdown of Responses")
 
-    # Convert Likert responses to numerical values for visualization
+    # Compute percentage breakdown
+    percentages = {}
+    for column in df.columns:
+        counts = df[column].value_counts(normalize=True) * 100
+        counts = counts.reindex(likert_options, fill_value=0)
+        percentages[column] = counts
+
+    percent_df = pd.DataFrame(percentages).T.round(2)
+    st.table(percent_df)
+
+    # Optional: Show bar chart for average numeric scores
     likert_mapping = {
         "Strongly Disagree": 1,
         "Disagree": 2,
@@ -59,7 +73,5 @@ if st.session_state.responses:
         "Strongly Agree": 5
     }
     df_numeric = df.replace(likert_mapping)
-
-    # Show bar chart
-    st.subheader("Survey Results (Bar Chart)")
+    st.subheader("Average Score per Question")
     st.bar_chart(df_numeric.mean())
